@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, StyleSheet, ActivityIndicator } from 'react-native'
-import { Surface, Text } from 'react-native-paper'
+import { View, StyleSheet } from 'react-native'
+import { Surface, Text, ActivityIndicator } from 'react-native-paper'
 
 export const MontoTotal = ({ resultadosOcio, resultadosProcesos, resultadoAjusteValor, servicioAdicional }) => {
   const [montoOcio, setMontoOcio] = useState(0)
@@ -8,76 +8,107 @@ export const MontoTotal = ({ resultadosOcio, resultadosProcesos, resultadoAjuste
   const [montoAjusteValor, setMontoAjusteValor] = useState(0)
   const [montoServicioAdicional, setMontoServicioAdicional] = useState(0)
   const [totalMonto, setTotalMonto] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   const calcularMontosIndividuales = useCallback(() => {
+    setLoading(true)
     let totalOcio = 0
-    resultadosOcio.forEach((item) => {
-      totalOcio += item.VALOR
-    })
-    setMontoOcio(totalOcio)
-
     let totalProcesos = 0
-    resultadosProcesos.forEach((item) => {
-      totalProcesos += item.VALOR
-    })
-
-    setMontoProcesos(totalProcesos)
-
     let totalAjusteValor = 0
-    resultadoAjusteValor.forEach((item) => {
-      if (item.TIPO_AJUSTEVALOR === 'Descuento') {
-        totalAjusteValor -= item.VALOR
-      } else {
-        totalAjusteValor += item.VALOR
-      }
-    })
-
-    setMontoAjusteValor(totalAjusteValor)
-
     let totalServicioAdicional = 0
-    servicioAdicional.forEach((item) => {
-      totalServicioAdicional += item.VALOR
-    })
 
-    setMontoServicioAdicional(totalServicioAdicional)
+    if (resultadosProcesos.length > 0) {
+      resultadosOcio.forEach((item) => {
+        totalOcio += item.VALOR
+      })
+      setMontoOcio(totalOcio)
 
-    const total = totalOcio + totalProcesos + totalAjusteValor + totalServicioAdicional
-    setTotalMonto(total)
+      resultadosProcesos.forEach((item) => {
+        totalProcesos += item.VALOR
+      })
+      setMontoProcesos(totalProcesos)
+
+      resultadoAjusteValor.forEach((item) => {
+        if (item.TIPO_AJUSTEVALOR === 'Descuento') {
+          totalAjusteValor -= item.VALOR
+        } else {
+          totalAjusteValor += item.VALOR
+        }
+      })
+      setMontoAjusteValor(totalAjusteValor)
+
+      servicioAdicional.forEach((item) => {
+        totalServicioAdicional += item.VALOR
+      })
+      setMontoServicioAdicional(totalServicioAdicional)
+
+      const total = totalOcio + totalProcesos + totalAjusteValor + totalServicioAdicional
+      setTotalMonto(total)
+      setLoading(false)
+    }
   }, [resultadosOcio, resultadosProcesos, resultadoAjusteValor, servicioAdicional])
 
   useEffect(() => {
     calcularMontosIndividuales()
   }, [calcularMontosIndividuales])
 
+  const renderMonto = (monto) => {
+    if (loading) {
+      return <ActivityIndicator color='#db0101' />
+    } else {
+      return <Text style={styles.surfaceNumber}>{monto.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</Text>
+    }
+  }
+
   return (
-    <View style={styles.container}>
-      <Surface style={styles.surface}>
-        <Text style={styles.title}>Total Monto:</Text>
-        <Text style={styles.amount}>{totalMonto.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</Text>
-      </Surface>
-
+    <>
       <View style={styles.surfaceContainer}>
         <Surface style={styles.surface2} elevation={4}>
-          <Text style={styles.surfaceTitle}>Total Procesos</Text>
-          {montoProcesos ? <Text style={styles.surfaceNumber}>{montoProcesos.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</Text> : <ActivityIndicator />}
-        </Surface>
-        <Surface style={styles.surface2} elevation={4}>
-          <Text style={styles.surfaceTitle}>Días de contingencia</Text>
-          {montoOcio ? <Text style={styles.surfaceNumber}>{montoOcio.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</Text> : <ActivityIndicator />}
+          <View>
+            <Text style={styles.surfaceTitle}>Total Procesos</Text>
+          </View>
+          <View>
+            {renderMonto(totalMonto)}
+          </View>
         </Surface>
       </View>
-
       <View style={styles.surfaceContainer}>
         <Surface style={styles.surface2} elevation={4}>
-          <Text style={styles.surfaceTitle}>Servicios Adicionales</Text>
-          {montoServicioAdicional ? <Text style={styles.surfaceNumber}>{montoServicioAdicional.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</Text> : <ActivityIndicator />}
+          <View>
+            <Text style={styles.surfaceTitle}>Total Procesos</Text>
+          </View>
+          <View>
+            {renderMonto(montoProcesos)}
+          </View>
         </Surface>
         <Surface style={styles.surface2} elevation={4}>
-          <Text style={styles.surfaceTitle}>Ajustes de Valor</Text>
-          {montoAjusteValor ? <Text style={styles.surfaceNumber}>{montoAjusteValor.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' })}</Text> : <ActivityIndicator />}
+          <View>
+            <Text style={styles.surfaceTitle}>Días de contingencia</Text>
+          </View>
+          <View>
+            {renderMonto(montoOcio)}
+          </View>
         </Surface>
       </View>
-    </View>
+      <View style={styles.surfaceContainer}>
+        <Surface style={styles.surface2} elevation={4}>
+          <View>
+            <Text style={styles.surfaceTitle}>Servicios Adicionales</Text>
+          </View>
+          <View>
+            {renderMonto(montoServicioAdicional)}
+          </View>
+        </Surface>
+        <Surface style={styles.surface2} elevation={4}>
+          <View>
+            <Text style={styles.surfaceTitle}>Ajustes de Valor</Text>
+          </View>
+          <View>
+            {renderMonto(montoAjusteValor)}
+          </View>
+        </Surface>
+      </View>
+    </>
   )
 }
 
@@ -131,17 +162,20 @@ const styles = StyleSheet.create({
   surface2: {
     flex: 1,
     marginHorizontal: 5,
-    padding: 10,
+    padding: 15,
     alignItems: 'center',
-    height: 90,
     flexDirection: 'column',
     justifyContent: 'space-between',
     backgroundColor: '#f2f2f2',
     borderRadius: 10
   },
   surfaceTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  surfaceNumber: {
+    fontSize: 16,
     textAlign: 'center'
   }
 })

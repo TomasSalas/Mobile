@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
-import { useNavigation } from '@react-navigation/native'
 import { Text } from 'react-native-paper'
 import { Dropdown } from 'react-native-element-dropdown'
 import { ObtenerFinazas } from '../functions/ObtenerFinanzas'
 import { MontoTotal } from './MontosTotales'
+import { checkToken } from '../helpers/CheckToken'
 
 export default function Finanzas () {
   const [userName, setUserName] = useState('')
-  const navigation = useNavigation()
   const currentYear = String(new Date().getFullYear())
   const currentMonth = '00'
   const [yearValue, setYearValue] = useState(currentYear)
@@ -19,6 +18,10 @@ export default function Finanzas () {
   const [resultadosProcesos, setResultadosProcesos] = useState([])
   const [resultadoAjusteValor, setResultadoAjusteValor] = useState([])
   const [servicioAdicional, setServicioAdicional] = useState([])
+  const [originalResultadosOcio, setOriginalResultadosOcio] = useState([])
+  const [originalResultadosProcesos, setOriginalResultadosProcesos] = useState([])
+  const [originalResultadoAjusteValor, setOriginalResultadoAjusteValor] = useState([])
+  const [originalServicioAdicional, setOriginalServicioAdicional] = useState([])
 
   const monthData = [
     { id: '00', mes: 'Todos los meses' },
@@ -40,61 +43,65 @@ export default function Finanzas () {
     const userInfoString = await SecureStore.getItemAsync('decode')
     if (userInfoString) {
       const userInfo = JSON.parse(userInfoString)
-
-      const currentTime = Math.floor(Date.now() / 1000)
-      if (userInfo.exp < currentTime) {
-        await SecureStore.deleteItemAsync('accessToken')
-        await SecureStore.deleteItemAsync('decode')
-        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
-        navigation.replace('Login')
-      } else {
-        setUserName(`${userInfo.Nombre} ${userInfo.Apellido}`)
-      }
+      setUserName(`${userInfo.Nombre} ${userInfo.Apellido}`)
     }
   }
 
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear()
     const years = []
-    for (let year = 2019; year <= currentYear; year++) {
+    for (let year = 2020; year <= currentYear; year++) {
       years.push({ label: String(year), value: String(year) })
     }
     setYearData(years)
   }
 
   const getFinanzas = async (year) => {
+    setResultadosOcio([])
+    setResultadosProcesos([])
+    setResultadoAjusteValor([])
+    setServicioAdicional([])
+
     const { error, result } = await ObtenerFinazas()
 
     if (!error) {
-      const filteredOcio = result[0].resultadosOcio.filter((item) => {
-        return item.FECHA_EDP.split('-')[2] === year
-      })
+      const filterByYear = (item) => item.FECHA_EDP.split('-')[2] === year
 
-      const filteredProcesos = result[0].resultadosProcesos.filter((item) => {
-        return item.FECHA_EDP.split('-')[2] === year
-      })
+      const filteredOcio = result[0].resultadosOcio.filter(filterByYear)
+      const filteredProcesos = result[0].resultadosProcesos.filter(filterByYear)
+      const filteredAjusteValor = result[0].resultadosAjusteDeValor.filter(filterByYear)
+      const filteredServicioAdicional = result[0].resultadosServiciosAdicionales.filter(filterByYear)
 
-      const filteredAjusteValor = result[0].resultadosAjusteDeValor.filter((item) => {
-        return item.FECHA_EDP.split('-')[2] === year
-      })
-
-      const filteredServicioAdicional = result[0].resultadosServiciosAdicionales.filter((item) => {
-        return item.FECHA_EDP.split('-')[2] === year
-      })
+      setOriginalResultadosOcio(filteredOcio)
+      setOriginalResultadosProcesos(filteredProcesos)
+      setOriginalResultadoAjusteValor(filteredAjusteValor)
+      setOriginalServicioAdicional(filteredServicioAdicional)
 
       setResultadosOcio(filteredOcio)
       setResultadosProcesos(filteredProcesos)
       setResultadoAjusteValor(filteredAjusteValor)
       setServicioAdicional(filteredServicioAdicional)
+    }
+  }
+
+  const filterByMonth = (month) => {
+    if (month === '00') {
+      setResultadosOcio(originalResultadosOcio)
+      setResultadosProcesos(originalResultadosProcesos)
+      setResultadoAjusteValor(originalResultadoAjusteValor)
+      setServicioAdicional(originalServicioAdicional)
     } else {
-      setResultadosOcio([])
-      setResultadosProcesos([])
-      setResultadoAjusteValor([])
-      setServicioAdicional([])
+      const filterByMonth = (item) => item.FECHA_EDP.split('-')[1] === month
+
+      setResultadosOcio(originalResultadosOcio.filter(filterByMonth))
+      setResultadosProcesos(originalResultadosProcesos.filter(filterByMonth))
+      setResultadoAjusteValor(originalResultadoAjusteValor.filter(filterByMonth))
+      setServicioAdicional(originalServicioAdicional.filter(filterByMonth))
     }
   }
 
   useEffect(() => {
+    checkToken()
     getUserInfo()
     generateYearOptions()
     getFinanzas(currentYear)
@@ -138,6 +145,7 @@ export default function Finanzas () {
         value={monthValue}
         onChange={(item) => {
           setMonthValue(item.id)
+          filterByMonth(item.id)
         }}
       />
 
@@ -147,7 +155,6 @@ export default function Finanzas () {
         resultadoAjusteValor={resultadoAjusteValor}
         servicioAdicional={servicioAdicional}
       />
-
     </View>
   )
 }

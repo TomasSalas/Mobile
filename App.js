@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 import LoginScreen from './components/LoginScreen'
 import MainApp from './components/MainApp'
+import SplashScreen from './components/SplashScreen'
 import * as ScreenOrientation from 'expo-screen-orientation'
 import * as SecureStore from 'expo-secure-store'
 
@@ -36,9 +37,12 @@ export default function App () {
               </Stack.Screen>
               )
             : (
-              <Stack.Screen name='Login'>
-                {() => <LoginScreen onLogin={() => setIsAuthenticated(true)} />}
-              </Stack.Screen>
+              <>
+                <Stack.Screen name='Splash' component={SplashScreen} />
+                <Stack.Screen name='Login'>
+                  {() => <LoginScreen onLogin={() => setIsAuthenticated(true)} />}
+                </Stack.Screen>
+              </>
               )}
         </Stack.Navigator>
       </NavigationContainer>

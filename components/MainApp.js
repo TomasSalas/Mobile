@@ -1,7 +1,9 @@
 import React, { useCallback } from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createStackNavigator } from '@react-navigation/stack'
 import HomeScreen from './HomeScreen'
 import SettingsScreen from './SettingsScreen'
+import LoginScreen from './LoginScreen'
 import { Alert } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons'
@@ -10,6 +12,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import Finanzas from './Finanzas'
 
 const Tab = createBottomTabNavigator()
+const Stack = createStackNavigator()
 
 const logout = async (setIsAuthenticated) => {
   await SecureStore.deleteItemAsync('accessToken')
@@ -43,15 +46,14 @@ const LogoutScreen = ({ setIsAuthenticated }) => {
 
       showAlert()
 
-      return () => {
-      }
+      return () => {}
     }, [navigation])
   )
 
   return null
 }
 
-export default function MainApp ({ setIsAuthenticated }) {
+function MainAppTabs ({ setIsAuthenticated }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -77,5 +79,16 @@ export default function MainApp ({ setIsAuthenticated }) {
         {() => <LogoutScreen setIsAuthenticated={setIsAuthenticated} />}
       </Tab.Screen>
     </Tab.Navigator>
+  )
+}
+
+export default function MainApp ({ setIsAuthenticated }) {
+  return (
+    <Stack.Navigator initialRouteName='MainAppTabs'>
+      <Stack.Screen name='MainAppTabs' options={{ headerShown: false }}>
+        {() => <MainAppTabs setIsAuthenticated={setIsAuthenticated} />}
+      </Stack.Screen>
+      <Stack.Screen name='Login' component={LoginScreen} options={{ headerShown: false }} />
+    </Stack.Navigator>
   )
 }

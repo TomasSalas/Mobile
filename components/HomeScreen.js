@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { View, StyleSheet, ScrollView } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
-import { useNavigation } from '@react-navigation/native'
 import { ActivityIndicator, Surface, Text } from 'react-native-paper'
 import { Dropdown } from 'react-native-element-dropdown'
 import { ObtenerResultados } from '../functions/ObtenerResultados'
 import Charts from './Charts'
+import { checkToken } from '../helpers/CheckToken'
 
 export default function HomeScreen () {
   const [userName, setUserName] = useState('')
-  const navigation = useNavigation()
 
   const [value, setValue] = useState('AC-PORT')
   const [resultados, setresultados] = useState(null)
@@ -24,16 +23,7 @@ export default function HomeScreen () {
     const userInfoString = await SecureStore.getItemAsync('decode')
     if (userInfoString) {
       const userInfo = JSON.parse(userInfoString)
-
-      const currentTime = Math.floor(Date.now() / 1000)
-      if (userInfo.exp < currentTime) {
-        await SecureStore.deleteItemAsync('accessToken')
-        await SecureStore.deleteItemAsync('decode')
-        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.')
-        navigation.replace('Login')
-      } else {
-        setUserName(`${userInfo.Nombre} ${userInfo.Apellido}`)
-      }
+      setUserName(`${userInfo.Nombre} ${userInfo.Apellido}`)
     }
   }
 
@@ -46,6 +36,7 @@ export default function HomeScreen () {
   }
 
   useEffect(() => {
+    checkToken()
     getUserInfo()
   }, [])
 
@@ -77,42 +68,41 @@ export default function HomeScreen () {
         }}
       />
 
+      <View style={styles.surfaceContainer}>
+        <Surface style={styles.surface2} elevation={4}>
+          <Text style={styles.surfaceTitle}>Procesos Planificados</Text>
+          {resultados ? <Text style={styles.surfaceNumber}>{resultados.totalProcesosPlanificados.count}</Text> : <ActivityIndicator color='#db0101' />}
+        </Surface>
+        <Surface style={styles.surface2} elevation={4}>
+          <Text style={styles.surfaceTitle}>Procesos Digitados</Text>
+          {resultados ? <Text style={styles.surfaceNumber}>{resultados.totalProcesosDigitados.count}</Text> : <ActivityIndicator color='#db0101' />}
+        </Surface>
+      </View>
+      <View style={styles.surfaceContainer}>
+        <Surface style={styles.surface3} elevation={4}>
+          <Text style={styles.surfaceTitle}>Procesos Competentes</Text>
+          {resultados ? <Text style={styles.surfaceNumber}>{resultados.competentes.count}</Text> : <ActivityIndicator color='#db0101' />}
+        </Surface>
+        <Surface style={styles.surface3} elevation={4}>
+          <Text style={styles.surfaceTitle}>Aún no competente por brecha Crítica</Text>
+          {resultados ? <Text style={styles.surfaceNumber}>{resultados.noCompetentesPorBrechaCritica.count}</Text> : <ActivityIndicator color='#db0101' />}
+        </Surface>
+      </View>
+      <View style={styles.surfaceContainer}>
+        <Surface style={styles.surface} elevation={4}>
+          <Text style={styles.surfaceTitle}>Aún no competente por puntaje</Text>
+          {resultados ? <Text style={styles.surfaceNumber}>{resultados.noCompetentesPorPuntaje.count}</Text> : <ActivityIndicator color='#db0101' />}
+        </Surface>
+        <Surface style={styles.surface} elevation={4}>
+          <Text style={styles.surfaceTitle}>Aún no competente por puntaje y brecha crítica</Text>
+          {resultados ? <Text style={styles.surfaceNumber}>{resultados.noCompetentesPorBrechaCritica.count}</Text> : <ActivityIndicator color='#db0101' />}
+        </Surface>
+      </View>
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
       >
-        <View style={styles.surfaceContainer}>
-          <Surface style={styles.surface2} elevation={4}>
-            <Text style={styles.surfaceTitle}>Procesos Planificados</Text>
-            {resultados ? <Text style={styles.surfaceNumber}>{resultados.totalProcesosPlanificados.count}</Text> : <ActivityIndicator />}
-          </Surface>
-          <Surface style={styles.surface2} elevation={4}>
-            <Text style={styles.surfaceTitle}>Procesos Digitados</Text>
-            {resultados ? <Text style={styles.surfaceNumber}>{resultados.totalProcesosDigitados.count}</Text> : <ActivityIndicator />}
-          </Surface>
-        </View>
-        <View style={styles.surfaceContainer}>
-          <Surface style={styles.surface3} elevation={4}>
-            <Text style={styles.surfaceTitle}>Procesos Competentes</Text>
-            {resultados ? <Text style={styles.surfaceNumber}>{resultados.competentes.count}</Text> : <ActivityIndicator />}
-          </Surface>
-          <Surface style={styles.surface3} elevation={4}>
-            <Text style={styles.surfaceTitle}>Aún no competente por brecha Crítica</Text>
-            {resultados ? <Text style={styles.surfaceNumber}>{resultados.noCompetentesPorBrechaCritica.count}</Text> : <ActivityIndicator />}
-          </Surface>
-        </View>
-        <View style={styles.surfaceContainer}>
-          <Surface style={styles.surface} elevation={4}>
-            <Text style={styles.surfaceTitle}>Aún no competente por puntaje</Text>
-            {resultados ? <Text style={styles.surfaceNumber}>{resultados.noCompetentesPorPuntaje.count}</Text> : <ActivityIndicator />}
-          </Surface>
-          <Surface style={styles.surface} elevation={4}>
-            <Text style={styles.surfaceTitle}>Aún no competente por puntaje y brecha crítica</Text>
-            {resultados ? <Text style={styles.surfaceNumber}>{resultados.noCompetentesPorBrechaCritica.count}</Text> : <ActivityIndicator />}
-          </Surface>
-        </View>
-        <View style={{ marginTop: 10 }}>
+        <View style={{ marginTop: 50 }}>
           {resultados !== null && <Charts data={resultados} />}
         </View>
       </ScrollView>

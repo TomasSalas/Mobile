@@ -5,8 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { FormatRut } from '../helpers/FormatRut'
 import { Login } from '../functions/Login'
 import * as SecureStore from 'expo-secure-store'
-import 'core-js/stable/atob'
-import { jwtDecode } from 'jwt-decode'
+import jwtDecode from 'jwt-decode'
 import { checkToken } from '../helpers/CheckToken'
 
 export default function LoginScreen ({ onLogin }) {
@@ -87,7 +86,13 @@ export default function LoginScreen ({ onLogin }) {
       />
       {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
 
-      <Button mode='contained' buttonColor='#db0101' onPress={handleSubmit(handleLogin)} loading={loading} style={{ marginTop: 20 }}>
+      <Button
+        mode='contained'
+        buttonColor='#db0101'
+        onPress={handleSubmit(handleLogin)}
+        loading={loading}
+        style={{ marginTop: 20 }}
+      >
         <Text style={styles.buttonText}>Iniciar Sesión</Text>
       </Button>
     </ScrollView>
