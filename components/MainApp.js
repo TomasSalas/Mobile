@@ -4,9 +4,10 @@ import HomeScreen from './HomeScreen'
 import SettingsScreen from './SettingsScreen'
 import { Alert } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
-import { AntDesign, FontAwesome5 } from '@expo/vector-icons'
+import { AntDesign, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import Finanzas from './Finanzas'
 
 const Tab = createBottomTabNavigator()
 
@@ -59,6 +60,8 @@ export default function MainApp ({ setIsAuthenticated }) {
             return <FontAwesome5 name='ship' size={size} color={color} />
           } else if (route.name === 'Minero') {
             return <Ionicons name='hammer-sharp' size={size} color={color} />
+          } else if (route.name === 'Finanzas') {
+            return <MaterialCommunityIcons name='cash-multiple' size={size} color={color} />
           } else if (route.name === 'Cerrar sesión') {
             return <AntDesign name='logout' size={size} color={color} />
           }
@@ -69,6 +72,7 @@ export default function MainApp ({ setIsAuthenticated }) {
     >
       <Tab.Screen name='Portuario' component={HomeScreen} />
       <Tab.Screen name='Minero' component={SettingsScreen} />
+      <Tab.Screen name='Finanzas' component={Finanzas} />
       <Tab.Screen name='Cerrar sesión'>
         {() => <LogoutScreen setIsAuthenticated={setIsAuthenticated} />}
       </Tab.Screen>

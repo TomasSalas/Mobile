@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, ScrollView } from 'react-native'
 import * as SecureStore from 'expo-secure-store'
 import { useNavigation } from '@react-navigation/native'
 import { ActivityIndicator, Surface, Text } from 'react-native-paper'
@@ -41,7 +41,6 @@ export default function HomeScreen () {
     setresultados(null)
     const { error, data } = await ObtenerResultados(payload)
     if (!error) {
-      console.log(data)
       setresultados(data)
     }
   }
@@ -55,29 +54,34 @@ export default function HomeScreen () {
   }, [])
 
   return (
-    <>
+    <View style={styles.container}>
       <View style={styles.headerRightContainer}>
         <Text style={styles.headerRightText}>Hola {userName}</Text>
       </View>
 
-      <View style={{ padding: 10 }}>
-        <Dropdown
-          style={styles.dropdown}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={data}
-          maxHeight={300}
-          labelField='label'
-          valueField='value'
-          placeholder='Select item'
-          value={value}
-          onChange={item => {
-            setValue(item.value)
-            getResultados(item.value)
-          }}
-        />
+      <Dropdown
+        style={styles.dropdown}
+        placeholderStyle={styles.placeholderStyle}
+        selectedTextStyle={styles.selectedTextStyle}
+        inputSearchStyle={styles.inputSearchStyle}
+        iconStyle={styles.iconStyle}
+        data={data}
+        maxHeight={300}
+        labelField='label'
+        valueField='value'
+        placeholder='Select item'
+        value={value}
+        onChange={item => {
+          setValue(item.value)
+          getResultados(item.value)
+        }}
+      />
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         <View style={styles.surfaceContainer}>
           <Surface style={styles.surface2} elevation={4}>
             <Text style={styles.surfaceTitle}>Procesos Planificados</Text>
@@ -110,18 +114,16 @@ export default function HomeScreen () {
         </View>
         <View style={{ marginTop: 10 }}>
           {resultados !== null && <Charts data={resultados} />}
-
         </View>
-      </View>
-    </>
+      </ScrollView>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    padding: 10,
-    flexDirection: 'row'
+    flex: 1,
+    padding: 10
   },
   headerRightContainer: {
     width: '100%',
@@ -132,9 +134,6 @@ const styles = StyleSheet.create({
   headerRightText: {
     fontSize: 16,
     color: '#000'
-  },
-  homeText: {
-    fontSize: 20
   },
   surfaceContainer: {
     flexDirection: 'row',
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     padding: 10,
     alignItems: 'center',
-    height: 70,
+    height: 90,
     flexDirection: 'column',
     justifyContent: 'space-between',
     backgroundColor: '#f2f2f2',
